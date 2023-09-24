@@ -69,10 +69,8 @@ namespace HwndExplorer.Utilities
             if (string.IsNullOrEmpty(parentName))
                 return root.CreateSubKey(name);
 
-            using (var parentKey = root.EnsureSubKey(parentName))
-            {
-                return parentKey.CreateSubKey(Path.GetFileName(name));
-            }
+            using var parentKey = root.EnsureSubKey(parentName);
+            return parentKey.CreateSubKey(Path.GetFileName(name));
         }
 
         public static void CenterWindow(IntPtr handle) => CenterWindow(handle, IntPtr.Zero);
@@ -290,14 +288,6 @@ namespace HwndExplorer.Utilities
             }
         }
 
-        public static string GetWindowText(IntPtr handle)
-        {
-            var len = GetWindowTextLengthW(handle);
-            var sb = new StringBuilder(len + 2);
-            _ = GetWindowText(handle, sb, sb.Capacity);
-            return sb.ToString();
-        }
-
         public static IntPtr ChildWindowFromPoint(IntPtr handle, Point point, CWP flags = CWP.CWP_ALL) => ChildWindowFromPointEx(handle, point, flags);
         public static bool IsParentWindow(IntPtr parent, IntPtr child) => EnumerateParentWindows(child).Any(p => p == parent);
         public static IEnumerable<IntPtr> EnumerateParentWindows(IntPtr handle)
@@ -445,7 +435,151 @@ namespace HwndExplorer.Utilities
             return null;
         }
 
-        [DllImport("ntdll.dll")]
+        public static Point? LogicalToPhysicalPoint(IntPtr handle, Point point)
+        {
+            if (!LogicalToPhysicalPoint(handle, ref point))
+                return null;
+
+            return point;
+        }
+
+        public static Point? PhysicalToLogicalPoint(IntPtr handle, Point point)
+        {
+            if (!PhysicalToLogicalPoint(handle, ref point))
+                return null;
+
+            return point;
+        }
+
+        public static int GetWindowThreadId(IntPtr handle) => GetWindowThreadProcessId(handle, out _);
+        public static int GetWindowProcessId(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero)
+                return 0;
+
+            _ = GetWindowThreadProcessId(handle, out int processId);
+            return processId;
+        }
+
+        public static IntPtr GetThreadActiveWindow(int threadId)
+        {
+            var info = new GUITHREADINFO();
+            info.cbSize = Marshal.SizeOf(info);
+            _ = GetGUIThreadInfo(threadId, ref info);
+            return info.hwndActive;
+        }
+
+        public static string GetWindowText(IntPtr handle)
+        {
+            var len = GetWindowTextLengthW(handle);
+            var sb = new StringBuilder(len + 2);
+            _ = GetWindowText(handle, sb, sb.Capacity);
+            return sb.ToString();
+        }
+
+        public static string GetWindowClass(IntPtr handle)
+        {
+            var sb = new StringBuilder(260);
+            _ = GetClassName(handle, sb, sb.Capacity);
+            return sb.ToString();
+        }
+
+        public static string GetRealWindowClass(IntPtr handle)
+        {
+            var sb = new StringBuilder(260);
+            _ = RealGetWindowClass(handle, sb, sb.Capacity);
+            return sb.ToString();
+        }
+
+        public static string GetWindowModuleFileName(IntPtr handle)
+        {
+            var sb = new StringBuilder(1024);
+            _ = GetWindowModuleFileName(handle, sb, sb.Capacity);
+            return sb.ToString();
+        }
+
+        public static IReadOnlyList<IntPtr> EnumerateTopLevelWindows()
+        {
+            var list = new List<IntPtr>();
+            _ = EnumWindows((h, l) => { list.Add(h); return true; }, IntPtr.Zero);
+            return list.AsReadOnly();
+        }
+
+        public static IReadOnlyList<IntPtr> EnumerateChildWindows(IntPtr handle)
+        {
+            var list = new List<IntPtr>();
+            _ = EnumChildWindows(handle, (h, l) => { list.Add(h); return true; }, IntPtr.Zero);
+            return list.AsReadOnly();
+        }
+
+        public static IReadOnlyList<WindowProperty> EnumerateProperties(IntPtr handle)
+        {
+            var list = new List<WindowProperty>();
+            _ = EnumPropsEx(handle, (a1, a2, a3, a4) =>
+            {
+                if (a2 != IntPtr.Zero)
+                {
+                    var s = a2.ToInt64() <= ushort.MaxValue ? GlobalGetAtomName((ushort)a2) : Marshal.PtrToStringUni(a2);
+                    if (s != null)
+                    {
+                        list.Add(new WindowProperty(s, a3));
+                    }
+                }
+                return true;
+            }, IntPtr.Zero);
+            return list;
+        }
+
+        public static string GlobalGetAtomName(ushort atom)
+        {
+            var sb = new StringBuilder(256);
+            _ = GlobalGetAtomName(atom, sb, sb.Capacity);
+            return sb.ToString();
+        }
+
+        public static string GetAtomName(ushort atom)
+        {
+            var sb = new StringBuilder(256);
+            _ = GetAtomName(atom, sb, sb.Capacity);
+            return sb.ToString();
+        }
+
+        public static IReadOnlyList<IntPtr> EnumerateProcessWindows(int processId)
+        {
+            try
+            {
+                return EnumerateProcessWindows(Process.GetProcessById(processId));
+            }
+            catch
+            {
+                return Array.Empty<IntPtr>();
+            }
+        }
+
+        public static IReadOnlyList<IntPtr> EnumerateProcessWindows(Process process)
+        {
+            if (process == null)
+                return Array.Empty<IntPtr>();
+
+            IEnumerable<ProcessThread> threads;
+            try
+            {
+                threads = process.Threads.Cast<ProcessThread>();
+            }
+            catch
+            {
+                return Array.Empty<IntPtr>();
+            }
+
+            var list = new List<IntPtr>();
+            foreach (var thread in threads)
+            {
+                _ = EnumThreadWindows(thread.Id, (h, l) => { list.Add(h); return true; }, IntPtr.Zero);
+            }
+            return list.AsReadOnly();
+        }
+
+        [DllImport("ntdll")]
         private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, ref PROCESS_BASIC_INFORMATION processInformation, int processInformationLength, out int returnLength);
 
         [DllImport("kernel32", SetLastError = true)]
@@ -457,26 +591,41 @@ namespace HwndExplorer.Utilities
         [DllImport("dwmapi")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref bool attrValue, int attrSize);
 
+        [DllImport("user32", CharSet = CharSet.Unicode)]
+        internal static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
+
         [DllImport("user32")]
-        private static extern bool ScreenToClient(IntPtr hwnd, ref Point pt);
+        private static extern bool EnumChildWindows(IntPtr hWndParent, EnumChildProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32")]
+        internal static extern IntPtr WindowFromPoint(Point point);
+
+        [DllImport("user32")]
+        internal static extern IntPtr WindowFromPhysicalPoint(Point point);
+
+        [DllImport("user32")]
+        private static extern bool EnumWindows(EnumChildProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32")]
+        internal static extern bool ScreenToClient(IntPtr hwnd, ref Point pt);
 
         [DllImport("user32", SetLastError = true)]
-        private static extern bool MoveWindow(IntPtr handle, int x, int y, int width, int height, bool repaint);
+        internal static extern bool MoveWindow(IntPtr handle, int x, int y, int width, int height, bool repaint);
 
         [DllImport("user32")]
         private static extern IntPtr ChildWindowFromPointEx(IntPtr handle, Point pt, CWP flags);
 
         [DllImport("user32")]
-        private static extern void SwitchToThisWindow(IntPtr handle, bool useAltCtlTab);
+        internal static extern void SwitchToThisWindow(IntPtr handle, bool useAltCtlTab);
 
         [DllImport("user32", SetLastError = true)]
-        private static extern bool BringWindowToTop(IntPtr handle);
+        internal static extern bool BringWindowToTop(IntPtr handle);
 
         [DllImport("user32")]
-        private static extern IntPtr SetActiveWindow(IntPtr handle);
+        internal static extern IntPtr SetActiveWindow(IntPtr handle);
 
         [DllImport("user32")]
-        public static extern bool SetForegroundWindow(IntPtr handle);
+        internal static extern bool SetForegroundWindow(IntPtr handle);
 
         [DllImport("user32")]
         private static extern bool AllowSetForegroundWindow(int processId);
@@ -494,10 +643,10 @@ namespace HwndExplorer.Utilities
         private static extern bool EnumPropsEx(IntPtr handle, PropEnumProcEx lpEnumFunc, IntPtr lParam);
 
         [DllImport("user32")]
-        private static extern bool LogicalToPhysicalPoint(IntPtr handle, ref Point lpPoint);
+        internal static extern bool LogicalToPhysicalPoint(IntPtr handle, ref Point lpPoint);
 
         [DllImport("user32")]
-        private static extern bool PhysicalToLogicalPoint(IntPtr handle, ref Point lpPoint);
+        internal static extern bool PhysicalToLogicalPoint(IntPtr handle, ref Point lpPoint);
 
         [DllImport("user32")]
         private static extern int GetGUIThreadInfo(int threadId, ref GUITHREADINFO info);
@@ -506,10 +655,10 @@ namespace HwndExplorer.Utilities
         private static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
 
         [DllImport("user32")]
-        private static extern IntPtr GetTopWindow(IntPtr handle);
+        internal static extern IntPtr GetTopWindow(IntPtr handle);
 
         [DllImport("user32")]
-        private static extern IntPtr GetLastActivePopup(IntPtr handle);
+        internal static extern IntPtr GetLastActivePopup(IntPtr handle);
 
         [DllImport("user32")]
         private static extern IntPtr GetAncestor(IntPtr handle, GA gaFlags);
@@ -517,11 +666,20 @@ namespace HwndExplorer.Utilities
         [DllImport("user32")]
         private static extern IntPtr GetWindow(IntPtr handle, GW uCmd);
 
+        [DllImport("user32")]
+        internal static extern IntPtr SetParent(IntPtr handle, IntPtr parentHandle);
+
+        [DllImport("user32", SetLastError = true)]
+        internal static extern bool ShowWindow(IntPtr handle, SW command);
+
+        [DllImport("user32")]
+        internal static extern bool ShowWindowAsync(IntPtr handle, SW commandShow);
+
         [DllImport("user32", CharSet = CharSet.Unicode)]
         private static extern int GetWindowText(IntPtr handle, StringBuilder lpString, int nMaxCount);
 
         [DllImport("user32", CharSet = CharSet.Unicode)]
-        private static extern int GetWindowModuleFileName(IntPtr handle, StringBuilder pszFileName, int cchFileNameMax);
+        internal static extern int GetWindowModuleFileName(IntPtr handle, StringBuilder pszFileName, int cchFileNameMax);
 
         [DllImport("user32", CharSet = CharSet.Unicode)]
         private static extern int GetClassName(IntPtr handle, StringBuilder lpClassName, int nMaxCount);
@@ -533,13 +691,13 @@ namespace HwndExplorer.Utilities
         private static extern int GetWindowTextLengthW(IntPtr handle);
 
         [DllImport("user32")]
-        private static extern bool IsHungAppWindow(IntPtr handle);
+        internal static extern bool IsHungAppWindow(IntPtr handle);
 
         [DllImport("user32")]
-        private static extern bool IsWindowVisible(IntPtr handle);
+        internal static extern bool IsWindowVisible(IntPtr handle);
 
         [DllImport("user32")]
-        private static extern bool IsWindowEnabled(IntPtr handle);
+        internal static extern bool IsWindowEnabled(IntPtr handle);
 
         [DllImport("kernel32")]
         private static extern int GetCurrentThreadId();
@@ -548,13 +706,13 @@ namespace HwndExplorer.Utilities
         private static extern bool EnumThreadWindows(int dwThreadId, EnumThreadWndProc lpEnumFunc, IntPtr lParam);
 
         [DllImport("user32")]
-        private static extern IntPtr GetActiveWindow();
+        internal static extern IntPtr GetActiveWindow();
 
         [DllImport("kernel32")]
         private static extern bool AllocConsole();
 
         [DllImport("user32")]
-        private static extern bool IsWindowUnicode(IntPtr handle);
+        internal static extern bool IsWindowUnicode(IntPtr handle);
 
         [DllImport("user32", EntryPoint = "GetWindowLongPtrW")]
         private static extern IntPtr GetWindowLongPtrW(IntPtr hWnd, WL nIndex);
@@ -578,13 +736,16 @@ namespace HwndExplorer.Utilities
         private static extern IntPtr SendMessage(IntPtr handle, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
 
         [DllImport("user32")]
-        private static extern int MapWindowPoints(IntPtr hWndFrom, IntPtr hWndTo, ref RECT rect, int cPoints);
+        internal static extern int MapWindowPoints(IntPtr hWndFrom, IntPtr hWndTo, ref RECT rect, int cPoints);
 
         [DllImport("user32")]
-        private static extern int MapWindowPoints(IntPtr hWndFrom, IntPtr hWndTo, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] Point[] lpPoints, int cPoints);
+        internal static extern IntPtr SetFocus(IntPtr hwnd);
 
         [DllImport("user32")]
-        private static extern bool UpdateWindow(IntPtr handle);
+        internal static extern int MapWindowPoints(IntPtr hWndFrom, IntPtr hWndTo, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] Point[] lpPoints, int cPoints);
+
+        [DllImport("user32")]
+        internal static extern bool UpdateWindow(IntPtr handle);
 
         [DllImport("user32")]
         private static extern IntPtr GetParent(IntPtr hWnd);
@@ -593,7 +754,7 @@ namespace HwndExplorer.Utilities
         private static extern bool GetMonitorInfo(IntPtr hmonitor, ref MONITORINFO info);
 
         [DllImport("user32", SetLastError = true)]
-        private static extern bool SetWindowPos(IntPtr handle, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, SWP flags);
+        internal static extern bool SetWindowPos(IntPtr handle, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, SWP flags);
 
         [DllImport("user32")]
         private static extern IntPtr MonitorFromWindow(IntPtr handle, MFW flags);
@@ -605,9 +766,33 @@ namespace HwndExplorer.Utilities
         private static extern bool GetClientRect(IntPtr handle, ref RECT rect);
 
         [DllImport("user32")]
+        internal static extern bool IsWindow(IntPtr handle);
+
+        [DllImport("user32")]
+        internal static extern bool IsZoomed(IntPtr handle);
+
+        [DllImport("user32")]
+        internal static extern bool IsIconic(IntPtr hwnd);
+
+        [DllImport("user32")]
+        internal static extern bool IsTopLevelWindow(IntPtr handle);
+
+        [DllImport("user32")]
         private static extern bool ClientToScreen(IntPtr hwnd, ref Point point);
 
         [DllImport("user32")]
-        private static extern IntPtr GetForegroundWindow();
+        internal static extern IntPtr GetForegroundWindow();
+
+        [DllImport("kernel32")]
+        internal static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32")]
+        internal static extern IntPtr GetFocus();
+
+        [DllImport("user32")]
+        internal static extern IntPtr GetDesktopWindow();
+
+        [DllImport("user32")]
+        internal static extern IntPtr GetShellWindow();
     }
 }
