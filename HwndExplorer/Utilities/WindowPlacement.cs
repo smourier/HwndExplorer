@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 namespace HwndExplorer.Utilities
 {
     [StructLayout(LayoutKind.Sequential)]
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public struct WindowPlacement
     {
         public int Length { get; set; }

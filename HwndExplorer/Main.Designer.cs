@@ -34,11 +34,11 @@ namespace HwndExplorer
             menuStripMain = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             exitToolStripMenuItem = new ToolStripMenuItem();
+            helpToolStripMenuItem = new ToolStripMenuItem();
+            aboutToolStripMenuItem = new ToolStripMenuItem();
             splitContainerMain = new SplitContainer();
             treeViewWindows = new TreeView();
             propertyGridMain = new PropertyGrid();
-            helpToolStripMenuItem = new ToolStripMenuItem();
-            aboutToolStripMenuItem = new ToolStripMenuItem();
             menuStripMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
             splitContainerMain.Panel1.SuspendLayout();
@@ -66,9 +66,23 @@ namespace HwndExplorer
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             exitToolStripMenuItem.ShortcutKeys = Keys.Alt | Keys.F4;
-            exitToolStripMenuItem.Size = new Size(180, 22);
+            exitToolStripMenuItem.Size = new Size(135, 22);
             exitToolStripMenuItem.Text = "E&xit";
             exitToolStripMenuItem.Click += ExitToolStripMenuItem_Click;
+            // 
+            // helpToolStripMenuItem
+            // 
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem });
+            helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            helpToolStripMenuItem.Size = new Size(44, 20);
+            helpToolStripMenuItem.Text = "Help";
+            // 
+            // aboutToolStripMenuItem
+            // 
+            aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            aboutToolStripMenuItem.Size = new Size(116, 22);
+            aboutToolStripMenuItem.Text = "About...";
+            aboutToolStripMenuItem.Click += AboutToolStripMenuItem_Click;
             // 
             // splitContainerMain
             // 
@@ -94,6 +108,7 @@ namespace HwndExplorer
             treeViewWindows.Name = "treeViewWindows";
             treeViewWindows.Size = new Size(374, 675);
             treeViewWindows.TabIndex = 0;
+            treeViewWindows.AfterSelect += TreeViewWindows_AfterSelect;
             // 
             // propertyGridMain
             // 
@@ -101,22 +116,10 @@ namespace HwndExplorer
             propertyGridMain.HelpVisible = false;
             propertyGridMain.Location = new Point(0, 0);
             propertyGridMain.Name = "propertyGridMain";
+            propertyGridMain.PropertySort = PropertySort.Alphabetical;
             propertyGridMain.Size = new Size(745, 675);
             propertyGridMain.TabIndex = 0;
-            // 
-            // helpToolStripMenuItem
-            // 
-            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem });
-            helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            helpToolStripMenuItem.Size = new Size(44, 20);
-            helpToolStripMenuItem.Text = "Help";
-            // 
-            // aboutToolStripMenuItem
-            // 
-            aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new Size(180, 22);
-            aboutToolStripMenuItem.Text = "About...";
-            aboutToolStripMenuItem.Click += AboutToolStripMenuItem_Click;
+            propertyGridMain.ToolbarVisible = false;
             // 
             // Main
             // 

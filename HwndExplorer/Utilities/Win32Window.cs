@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -46,39 +47,94 @@ namespace HwndExplorer.Utilities
 
         public IntPtr Handle { get; }
         public WS Styles { get => (WS)(long)WindowsUtilities.GetWindowLong(Handle, WL.GWL_STYLE); }
+
+        [DisplayName("Extended Styles")]
         public WS_EX ExtendedStyles { get => (WS_EX)(long)WindowsUtilities.GetWindowLong(Handle, WL.GWL_EXSTYLE); }
+
+        [Browsable(false)]
         public int Int32Handle => (int)(long)Handle;
+
+        [DisplayName("Handle (hex)")]
+        public string HandleAsHex => "0x" + Int32Handle.ToString("X8");
+
+        [DisplayName("Is Window")]
         public bool IsWindow => WindowsUtilities.IsWindow(Handle);
+
+        [DisplayName("Is Visible")]
         public bool IsVisible => WindowsUtilities.IsWindowVisible(Handle);
+
+        [DisplayName("Is Unicode")]
         public bool IsUnicode => WindowsUtilities.IsWindowUnicode(Handle);
+
+        [DisplayName("Is Zoomed")]
         public bool IsZoomed => WindowsUtilities.IsZoomed(Handle);
+
+        [DisplayName("Is Iconic")]
         public bool IsIconic => WindowsUtilities.IsIconic(Handle);
+
+        [DisplayName("Is Hung App")]
         public bool IsHungApp => WindowsUtilities.IsHungAppWindow(Handle);
+
+        [DisplayName("Is Active")]
         public bool IsActive => Handle == WindowsUtilities.GetActiveWindow();
+
+        [DisplayName("Is Foreground")]
         public bool IsForeground => Handle == WindowsUtilities.GetForegroundWindow();
+
+        [DisplayName("Has Focus")]
         public bool HasFocus => Handle == WindowsUtilities.GetFocus();
+
+        [DisplayName("Is Top-Level")]
         public bool IsTopLevel => WindowsUtilities.IsTopLevelWindow(Handle);
+
+        [DisplayName("Is Dialog")]
         public bool IsDialog => RealClassName == "#32770";
+
+        [DisplayName("Is Desktop")]
         public bool IsDesktop => RealClassName == "#32769";
+
+        [DisplayName("Is Menu")]
         public bool IsMenu => RealClassName == "#32768";
+
+        [DisplayName("Is Enabled")]
         public bool IsEnabled => WindowsUtilities.IsWindowEnabled(Handle);
+
+        [DisplayName("Class Name")]
         public string ClassName => WindowsUtilities.GetWindowClass(Handle);
+
+        [DisplayName("Real Class Name")]
         public string RealClassName => WindowsUtilities.GetRealWindowClass(Handle);
         public string Text => WindowsUtilities.GetWindowText(Handle);
+
+        [DisplayName("Module File Name")]
         public string ModuleFileName => WindowsUtilities.GetWindowModuleFileName(Handle);
         public WindowPlacement Placement { get => WindowPlacement.GetPlacement(Handle); set => value.SetPlacement(Handle); }
         public Win32Window? Owner => FromHandle(WindowsUtilities.GetOwnerWindow(Handle));
+
+        [DisplayName("Root Owner")]
         public Win32Window? RootOwner => FromHandle(WindowsUtilities.GetRootOwnerWindow(Handle));
         public Win32Window? Root => FromHandle(WindowsUtilities.GetRootWindow(Handle));
         public Win32Window? Top => FromHandle(WindowsUtilities.GetTopWindow(Handle));
+
+        [DisplayName("Last Active Popup")]
         public Win32Window? LastActivePopup => FromHandle(WindowsUtilities.GetLastActivePopup(Handle));
         public IReadOnlyList<WindowProperty> Properties => WindowsUtilities.EnumerateProperties(Handle);
+
+        [DisplayName("Thread Id")]
         public int ThreadId => WindowsUtilities.GetWindowThreadId(Handle);
+
+        [DisplayName("Process Id")]
         public int ProcessId => WindowsUtilities.GetWindowProcessId(Handle);
         public Process Process => _process.Value;
         public RECT Rect => WindowsUtilities.GetWindowRect(Handle);
+
+        [DisplayName("Client Rect")]
         public RECT ClientRect => WindowsUtilities.GetClientRect(Handle);
+
+        [DisplayName("Child Windows")]
         public IEnumerable<Win32Window> ChildWindows => WindowsUtilities.EnumerateChildWindows(Handle).Select(h => FromHandle(h)).Where(w => w is not null)!;
+
+        [Browsable(false)]
         public IEnumerable<Win32Window> AllChildWindows
         {
             get
@@ -106,6 +162,7 @@ namespace HwndExplorer.Utilities
             }
         }
 
+        [DisplayName("Parent Windows")]
         public IEnumerable<Win32Window> ParentWindows
         {
             get
@@ -127,6 +184,7 @@ namespace HwndExplorer.Utilities
             }
         }
 
+        [DisplayName("Process Windows")]
         public IReadOnlyCollection<Win32Window> ProcessWindows
         {
             get
