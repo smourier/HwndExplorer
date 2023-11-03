@@ -8,8 +8,9 @@ namespace HwndExplorer.Utilities
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public struct WindowPlacement
     {
+        [Browsable(false)]
         public int Length { get; set; }
-        public int Flags { get; set; }
+        public WPF Flags { get; set; }
         public SW ShowCmd { get; set; }
         public int MinPositionX { get; set; }
         public int MinPositionY { get; set; }
@@ -22,6 +23,31 @@ namespace HwndExplorer.Utilities
 
         public bool IsMinimized => ShowCmd == SW.SW_SHOWMINIMIZED;
         public bool IsValid => Length == Marshal.SizeOf(typeof(WindowPlacement));
+
+        public override string ToString()
+        {
+            var str = $"ShowCmd: {ShowCmd}";
+            if (Flags != 0)
+            {
+                str += $" Flags {Flags}";
+            }
+
+            if (MinPositionX != -1 && MinPositionY != -1)
+            {
+                str += $" Min: {MinPositionX}x{MinPositionY}";
+            }
+
+            if (MaxPositionX != -1 && MaxPositionY != -1)
+            {
+                str += $" Max: {MaxPositionX}x{MaxPositionY}";
+            }
+
+            if (NormalPositionLeft != 0 && NormalPositionTop != 0 && NormalPositionRight != 0 && NormalPositionBottom != 0)
+            {
+                str += $" Normal: {NormalPositionLeft},{NormalPositionTop},{NormalPositionRight},{NormalPositionBottom}";
+            }
+            return str;
+        }
 
         public void SetPlacement(IntPtr handle) => SetWindowPlacement(handle, ref this);
         public static WindowPlacement GetPlacement(IntPtr handle, bool throwOnError = false)

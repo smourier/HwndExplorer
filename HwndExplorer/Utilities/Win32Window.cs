@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
 
 namespace HwndExplorer.Utilities
 {
@@ -106,8 +103,6 @@ namespace HwndExplorer.Utilities
         public string RealClassName => WindowsUtilities.GetRealWindowClass(Handle);
         public string Text => WindowsUtilities.GetWindowText(Handle);
 
-        [DisplayName("Module File Name")]
-        public string ModuleFileName => WindowsUtilities.GetWindowModuleFileName(Handle);
         public WindowPlacement Placement { get => WindowPlacement.GetPlacement(Handle); set => value.SetPlacement(Handle); }
         public Win32Window? Owner => FromHandle(WindowsUtilities.GetOwnerWindow(Handle));
 
