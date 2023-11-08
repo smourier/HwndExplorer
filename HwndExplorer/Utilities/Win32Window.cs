@@ -40,6 +40,7 @@ namespace HwndExplorer.Utilities
         {
             _process = new Lazy<Process>(() => Process.GetProcessById(ProcessId));
             Handle = handle;
+            ProcessModel = new ProcessModel(this);
         }
 
         public IntPtr Handle { get; }
@@ -101,8 +102,11 @@ namespace HwndExplorer.Utilities
 
         [DisplayName("Real Class Name")]
         public string RealClassName => WindowsUtilities.GetRealWindowClass(Handle);
+
+        [DisplayName("Title")]
         public string Text => WindowsUtilities.GetWindowText(Handle);
 
+        [ReadOnly(true)]
         public WindowPlacement Placement { get => WindowPlacement.GetPlacement(Handle); set => value.SetPlacement(Handle); }
         public Win32Window? Owner => FromHandle(WindowsUtilities.GetOwnerWindow(Handle));
 
@@ -120,6 +124,12 @@ namespace HwndExplorer.Utilities
 
         [DisplayName("Process Id")]
         public int ProcessId => WindowsUtilities.GetWindowProcessId(Handle);
+
+        [DisplayName("Process")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public ProcessModel ProcessModel { get; }
+
+        [Browsable(false)]
         public Process Process => _process.Value;
         public RECT Rect => WindowsUtilities.GetWindowRect(Handle);
 

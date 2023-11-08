@@ -19,7 +19,8 @@ namespace HwndExplorer
             _ltv.Font = new Font("Consolas", 10);
             _ltv.AddColumn("Hwnd").Width = 100;
             _ltv.AddColumn("Class");
-            _ltv.AddColumn("Text");
+            _ltv.AddColumn("Title");
+            _ltv.AddColumn("Process");
             _ltv.SelectionMode = SelectionMode.One;
             _ltv.RowSelectedBrush = Brushes.LightGray;
             _ltv.SelectionChanged += OnSelectionChanged;
@@ -42,7 +43,7 @@ namespace HwndExplorer
                 e = Win32Window.TopLevelWindows;
             }
 
-            Func<Win32Window, object> f;
+            Func<Win32Window, object>? f = null;
 
             if (handleToolStripMenuItem.Checked)
             {
@@ -52,18 +53,21 @@ namespace HwndExplorer
             {
                 f = w => w.ClassName;
             }
-            else
+            else if (titleToolStripMenuItem.Checked)
             {
                 f = w => w.Text;
             }
 
-            if (ascendingToolStripMenuItem.Checked)
+            if (f != null)
             {
-                e = e.OrderBy(f);
-            }
-            else
-            {
-                e = e.OrderByDescending(f);
+                if (ascendingToolStripMenuItem.Checked)
+                {
+                    e = e.OrderBy(f);
+                }
+                else
+                {
+                    e = e.OrderByDescending(f);
+                }
             }
             return e;
         }
@@ -97,6 +101,7 @@ namespace HwndExplorer
             row.AddCell(window.HandleAsHex);
             row.AddCell(window.ClassName);
             row.AddCell(window.Text);
+            row.AddCell(window.Process.ProcessName);
             row.Tag = new Model { Window = window };
             if (window.ChildWindows.Any())
             {
@@ -132,27 +137,51 @@ namespace HwndExplorer
             LoadTopLevelWindows();
         }
 
+        private void noneToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            noneToolStripMenuItem.Checked = true;
+            handleToolStripMenuItem.Checked = false;
+            titleToolStripMenuItem.Checked = false;
+            classNameToolStripMenuItem.Checked = false;
+
+            descendingToolStripMenuItem.Enabled = false;
+            ascendingToolStripMenuItem.Enabled = false;
+            UpdateControls();
+        }
+
         private void handleToolStripMenuItem_Click(object sender, EventArgs e)
         {
             handleToolStripMenuItem.Checked = true;
+            noneToolStripMenuItem.Checked = false;
             titleToolStripMenuItem.Checked = false;
             classNameToolStripMenuItem.Checked = false;
+
+            descendingToolStripMenuItem.Enabled = true;
+            ascendingToolStripMenuItem.Enabled = true;
             UpdateControls();
         }
 
         private void classNameToolStripMenuItem_Click(object sender, EventArgs e)
         {
             classNameToolStripMenuItem.Checked = true;
+            noneToolStripMenuItem.Checked = false;
             titleToolStripMenuItem.Checked = false;
             handleToolStripMenuItem.Checked = false;
+
+            descendingToolStripMenuItem.Enabled = true;
+            ascendingToolStripMenuItem.Enabled = true;
             UpdateControls();
         }
 
         private void titleToolStripMenuItem_Click(object sender, EventArgs e)
         {
             titleToolStripMenuItem.Checked = true;
+            noneToolStripMenuItem.Checked = false;
             classNameToolStripMenuItem.Checked = false;
             handleToolStripMenuItem.Checked = false;
+
+            descendingToolStripMenuItem.Enabled = true;
+            ascendingToolStripMenuItem.Enabled = true;
             UpdateControls();
         }
 
@@ -166,6 +195,11 @@ namespace HwndExplorer
         {
             ascendingToolStripMenuItem.Checked = !descendingToolStripMenuItem.Checked;
             UpdateControls();
+        }
+
+        private void splitContainerMain_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+
         }
     }
 }
