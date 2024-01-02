@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2023 Simon Mourier
+Copyright (c) 2023-2024 Simon Mourier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,21 +21,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-global using global::System.Collections.Generic;
-global using global::System.IO;
-global using global::System.Linq;
-global using global::System.Net.Http;
-global using global::System.Threading.Tasks;
-global using global::System.Threading;
-global using global::System;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Forms.VisualStyles;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 
 namespace ListTreeView
 {
