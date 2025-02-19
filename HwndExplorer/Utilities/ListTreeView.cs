@@ -22,35 +22,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-global using global::System.Collections.Generic;
-global using global::System.IO;
-global using global::System.Linq;
-global using global::System.Net.Http;
-global using global::System.Threading.Tasks;
-global using global::System.Threading;
-global using global::System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms.VisualStyles;
 using System.Windows.Forms;
+using System;
 
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
 namespace ListTreeView
 {
-	public class Cell
+	public class Cell(object? value)
 	    {
-	        public Cell(object? value)
-	        {
-	            Value = value;
-	        }
-	
-	        public virtual object? Value { get; set; }
+	        public virtual object? Value { get; set; } = value;
 	        public string ValueAsString => Value?.ToString() ?? string.Empty;
 	
 	        public override string ToString() => ValueAsString;
@@ -171,8 +162,7 @@ namespace ListTreeView
 	                if (_width == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _width = Math.Max(MinWidth, value);
 	                OnPropertyChanged();
@@ -188,8 +178,7 @@ namespace ListTreeView
 	                if (_minWidth == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _minWidth = value;
 	                OnPropertyChanged();
@@ -205,8 +194,7 @@ namespace ListTreeView
 	                if (_verticalPadding == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _verticalPadding = value;
 	                OnPropertyChanged();
@@ -221,8 +209,7 @@ namespace ListTreeView
 	                if (_horizontalPadding == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _horizontalPadding = value;
 	                OnPropertyChanged();
@@ -652,7 +639,7 @@ namespace ListTreeView
 	        private Row? _selectedRow; // always null with multiple selection
 	        private MovingColumnHeader? _movingColumnHeader;
 	        private int _firstVisibleRowIndex;
-	        private readonly List<Row> _rowsCache = new();
+	        private readonly List<Row> _rowsCache = [];
 	
 	        public event PropertyChangedEventHandler? PropertyChanged;
 	        public event EventHandler<DrawRowEventArgs>? DrawingRow;
@@ -694,8 +681,8 @@ namespace ListTreeView
 	        protected HScrollBar HorizontalScrollBar { get; } = new();
 	        protected VScrollBar VerticalScrollBar { get; } = new();
 	
-	        public ObservableList<Column> Columns { get; } = new ObservableList<Column>();
-	        public ObservableList<Row> Rows { get; } = new ObservableList<Row>();
+	        public ObservableList<Column> Columns { get; } = [];
+	        public ObservableList<Row> Rows { get; } = [];
 	
 	        public virtual SelectionMode SelectionMode
 	        {
@@ -802,8 +789,7 @@ namespace ListTreeView
 	                if (_rowHeight == value)
 	                    return;
 	
-	                if (value <= 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
 	
 	                _rowHeight = value;
 	                OnPropertyChanged();
@@ -819,8 +805,7 @@ namespace ListTreeView
 	                if (_headerHeight == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _headerHeight = value;
 	                OnPropertyChanged();
@@ -835,8 +820,7 @@ namespace ListTreeView
 	                if (_rowOverhang == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _rowOverhang = value;
 	                OnPropertyChanged();
@@ -851,8 +835,7 @@ namespace ListTreeView
 	                if (_defaultColumnWidth == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _defaultColumnWidth = value;
 	                OnPropertyChanged();
@@ -867,8 +850,7 @@ namespace ListTreeView
 	                if (_defaultMinColumnWidth == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _defaultMinColumnWidth = value;
 	                OnPropertyChanged();
@@ -930,7 +912,7 @@ namespace ListTreeView
 	            }
 	        }
 	
-	        public virtual int ExtentWidth => Columns.Count == 0 ? 0 : Columns[Columns.Count - 1].Bounds!.Value.Right;
+	        public virtual int ExtentWidth => Columns.Count == 0 ? 0 : Columns[^1].Bounds!.Value.Right;
 	        public virtual int ExtentHeight
 	        {
 	            get => _extentHeight;
@@ -939,8 +921,7 @@ namespace ListTreeView
 	                if (_extentHeight == value)
 	                    return;
 	
-	                if (value < 0)
-	                    throw new ArgumentOutOfRangeException(nameof(value));
+	                ArgumentOutOfRangeException.ThrowIfNegative(value);
 	
 	                _extentHeight = value;
 	                OnPropertyChanged();
@@ -987,7 +968,7 @@ namespace ListTreeView
 	            get
 	            {
 	                if (_rowsCache.Count <= _firstVisibleRowIndex)
-	                    return Array.Empty<Row>();
+	                    return [];
 	
 	                return _rowsCache.Skip(_firstVisibleRowIndex);
 	            }
@@ -1284,7 +1265,7 @@ namespace ListTreeView
 	                return;
 	
 	            var first = _rowsCache[_firstVisibleRowIndex];
-	            var last = _rowsCache[_rowsCache.Count - 1];
+	            var last = _rowsCache[^1];
 	            if (!first.FirstCellBounds.HasValue)
 	                return;
 	
@@ -1412,7 +1393,7 @@ namespace ListTreeView
 	            {
 	                var delta = point.X - width;
 	                if (Math.Abs(delta) <= MouseTolerance)
-	                    return Columns[Columns.Count - 1];
+	                    return Columns[^1];
 	            }
 	            return null;
 	        }
@@ -1669,18 +1650,11 @@ namespace ListTreeView
 	            }
 	        }
 	
-	        private sealed class MovingColumnHeader
+	        private sealed class MovingColumnHeader(Column column, Point position)
 	        {
-	            public MovingColumnHeader(Column column, Point position)
-	            {
-	                Column = column;
-	                Position = position;
-	                Width = column.Width;
-	            }
-	
-	            public int Width;
-	            public Column Column;
-	            public Point Position;
+	            public int Width = column.Width;
+	            public Column Column = column;
+	            public Point Position = position;
 	
 	            public void MouseMove(Point position)
 	            {
@@ -1725,8 +1699,7 @@ namespace ListTreeView
 	    {
 	        public ObservableInsertedEventArgs(int index, T item)
 	        {
-	            if (index < 0)
-	                throw new ArgumentOutOfRangeException(nameof(index));
+	            ArgumentOutOfRangeException.ThrowIfNegative(index);
 	
 	            Index = index;
 	            Item = item;
@@ -1740,8 +1713,7 @@ namespace ListTreeView
 	    {
 	        public ObservableInsertingEventArgs(int index, T item)
 	        {
-	            if (index < 0)
-	                throw new ArgumentOutOfRangeException(nameof(index));
+	            ArgumentOutOfRangeException.ThrowIfNegative(index);
 	
 	            Index = index;
 	            Item = item;
@@ -1769,7 +1741,7 @@ namespace ListTreeView
 	        {
 	            var e = new ObservableCreatingEventArgs<T>();
 	            OnCreating(this, e);
-	            BaseList = e.BaseList ?? new List<T>();
+	            BaseList = e.BaseList ?? [];
 	        }
 	
 	        protected IList<T> BaseList { get; }
@@ -1883,8 +1855,7 @@ namespace ListTreeView
 	    {
 	        public ObservableListReplacingEventArgs(int index, T item, T oldItem)
 	        {
-	            if (index < 0)
-	                throw new ArgumentOutOfRangeException(nameof(index));
+	            ArgumentOutOfRangeException.ThrowIfNegative(index);
 	
 	            Index = index;
 	            Item = item;
@@ -1900,8 +1871,7 @@ namespace ListTreeView
 	    {
 	        public ObservableRemovedEventArgs(int index, T item)
 	        {
-	            if (index < 0)
-	                throw new ArgumentOutOfRangeException(nameof(index));
+	            ArgumentOutOfRangeException.ThrowIfNegative(index);
 	
 	            Index = index;
 	            Item = item;
@@ -1930,8 +1900,7 @@ namespace ListTreeView
 	    {
 	        public ObservableReplacedEventArgs(int index, T item, T oldItem)
 	        {
-	            if (index < 0)
-	                throw new ArgumentOutOfRangeException(nameof(index));
+	            ArgumentOutOfRangeException.ThrowIfNegative(index);
 	
 	            Index = index;
 	            Item = item;
@@ -1960,8 +1929,8 @@ namespace ListTreeView
 	            Cells.CollectionChanged += (sende, e) => OnCellsCollectionChanged(e);
 	        }
 	
-	        public ObservableList<Row> ChildRows { get; } = new ObservableList<Row>();
-	        public ObservableList<Cell> Cells { get; } = new ObservableList<Cell>();
+	        public ObservableList<Row> ChildRows { get; } = [];
+	        public ObservableList<Cell> Cells { get; } = [];
 	        public string Key { get; private set; } = string.Empty;
 	        public virtual int ExpanderSize => Owner?.LogicalToDeviceUnits(9) ?? 9;
 	        public virtual int ExpanderPadding => Owner?.LogicalToDeviceUnits(4) ?? 4;
@@ -2667,8 +2636,7 @@ namespace ListTreeView
 	
 	        public virtual Rectangle? GetCellBounds(int columnIndex)
 	        {
-	            if (columnIndex < 0)
-	                throw new ArgumentOutOfRangeException(nameof(columnIndex));
+	            ArgumentOutOfRangeException.ThrowIfNegative(columnIndex);
 	
 	            if (Owner == null || columnIndex >= Owner.Columns.Count)
 	                return null;
@@ -2981,12 +2949,8 @@ namespace ListTreeView
 	        }
 	    }
 	
-	public class RowCollapsedEventArgs : RowEventArgs
+	public class RowCollapsedEventArgs(Row row) : RowEventArgs(row)
 	    {
-	        public RowCollapsedEventArgs(Row row)
-	            : base(row)
-	        {
-	        }
 	    }
 	
 	public abstract class RowEventArgs : HandledEventArgs
@@ -3000,12 +2964,8 @@ namespace ListTreeView
 	        public Row Row { get; }
 	    }
 	
-	public class RowExpandedEventArgs : RowEventArgs
+	public class RowExpandedEventArgs(Row row) : RowEventArgs(row)
 	    {
-	        public RowExpandedEventArgs(Row row)
-	            : base(row)
-	        {
-	        }
 	    }
 }
 

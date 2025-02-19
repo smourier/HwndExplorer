@@ -37,7 +37,7 @@ namespace HwndExplorer
         {
             IEnumerable<Win32Window> e;
 
-            if (parent != null)
+            if (parent is not null)
             {
                 e = parent.ChildWindows;
             }
@@ -119,7 +119,7 @@ namespace HwndExplorer
 
         private void OnRowExpanded(object? sender, RowExpandedEventArgs e)
         {
-            if (e.Row.Tag is not Model model || model.Loaded)
+            if (e.Row.Tag is not Model model)
                 return;
 
             foreach (var window in EnumerateWindows(model.Window))
@@ -130,7 +130,6 @@ namespace HwndExplorer
 
         private sealed class Model
         {
-            public bool Loaded;
             public required Win32Window Window { get; init; }
         }
 
@@ -140,7 +139,7 @@ namespace HwndExplorer
             LoadTopLevelWindows();
         }
 
-        private void noneToolStripMenuItem_Click(object sender, EventArgs e)
+        private void NoneToolStripMenuItem_Click(object sender, EventArgs e)
         {
             noneToolStripMenuItem.Checked = true;
             handleToolStripMenuItem.Checked = false;
@@ -152,7 +151,7 @@ namespace HwndExplorer
             UpdateControls();
         }
 
-        private void handleToolStripMenuItem_Click(object sender, EventArgs e)
+        private void HandleToolStripMenuItem_Click(object sender, EventArgs e)
         {
             handleToolStripMenuItem.Checked = true;
             noneToolStripMenuItem.Checked = false;
@@ -164,7 +163,7 @@ namespace HwndExplorer
             UpdateControls();
         }
 
-        private void classNameToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ClassNameToolStripMenuItem_Click(object sender, EventArgs e)
         {
             classNameToolStripMenuItem.Checked = true;
             noneToolStripMenuItem.Checked = false;
@@ -176,7 +175,7 @@ namespace HwndExplorer
             UpdateControls();
         }
 
-        private void titleToolStripMenuItem_Click(object sender, EventArgs e)
+        private void TitleToolStripMenuItem_Click(object sender, EventArgs e)
         {
             titleToolStripMenuItem.Checked = true;
             noneToolStripMenuItem.Checked = false;
@@ -188,21 +187,16 @@ namespace HwndExplorer
             UpdateControls();
         }
 
-        private void ascendingToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AscendingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             descendingToolStripMenuItem.Checked = !ascendingToolStripMenuItem.Checked;
             UpdateControls();
         }
 
-        private void descendingToolStripMenuItem_Click(object sender, EventArgs e)
+        private void DescendingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ascendingToolStripMenuItem.Checked = !descendingToolStripMenuItem.Checked;
             UpdateControls();
-        }
-
-        private void splitContainerMain_SplitterMoved(object sender, SplitterEventArgs e)
-        {
-
         }
     }
 }

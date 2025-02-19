@@ -98,7 +98,7 @@ namespace HwndExplorer
             noneToolStripMenuItem.Name = "noneToolStripMenuItem";
             noneToolStripMenuItem.Size = new Size(136, 22);
             noneToolStripMenuItem.Text = "(None)";
-            noneToolStripMenuItem.Click += noneToolStripMenuItem_Click;
+            noneToolStripMenuItem.Click += NoneToolStripMenuItem_Click;
             // 
             // handleToolStripMenuItem
             // 
@@ -106,7 +106,7 @@ namespace HwndExplorer
             handleToolStripMenuItem.Name = "handleToolStripMenuItem";
             handleToolStripMenuItem.Size = new Size(136, 22);
             handleToolStripMenuItem.Text = "Handle";
-            handleToolStripMenuItem.Click += handleToolStripMenuItem_Click;
+            handleToolStripMenuItem.Click += HandleToolStripMenuItem_Click;
             // 
             // classNameToolStripMenuItem
             // 
@@ -114,7 +114,7 @@ namespace HwndExplorer
             classNameToolStripMenuItem.Name = "classNameToolStripMenuItem";
             classNameToolStripMenuItem.Size = new Size(136, 22);
             classNameToolStripMenuItem.Text = "Class Name";
-            classNameToolStripMenuItem.Click += classNameToolStripMenuItem_Click;
+            classNameToolStripMenuItem.Click += ClassNameToolStripMenuItem_Click;
             // 
             // titleToolStripMenuItem
             // 
@@ -122,7 +122,7 @@ namespace HwndExplorer
             titleToolStripMenuItem.Name = "titleToolStripMenuItem";
             titleToolStripMenuItem.Size = new Size(136, 22);
             titleToolStripMenuItem.Text = "Title";
-            titleToolStripMenuItem.Click += titleToolStripMenuItem_Click;
+            titleToolStripMenuItem.Click += TitleToolStripMenuItem_Click;
             // 
             // toolStripSeparator1
             // 
@@ -138,7 +138,7 @@ namespace HwndExplorer
             ascendingToolStripMenuItem.Name = "ascendingToolStripMenuItem";
             ascendingToolStripMenuItem.Size = new Size(136, 22);
             ascendingToolStripMenuItem.Text = "Ascending";
-            ascendingToolStripMenuItem.Click += ascendingToolStripMenuItem_Click;
+            ascendingToolStripMenuItem.Click += AscendingToolStripMenuItem_Click;
             // 
             // descendingToolStripMenuItem
             // 
@@ -147,7 +147,7 @@ namespace HwndExplorer
             descendingToolStripMenuItem.Name = "descendingToolStripMenuItem";
             descendingToolStripMenuItem.Size = new Size(136, 22);
             descendingToolStripMenuItem.Text = "Descending";
-            descendingToolStripMenuItem.Click += descendingToolStripMenuItem_Click;
+            descendingToolStripMenuItem.Click += DescendingToolStripMenuItem_Click;
             // 
             // helpToolStripMenuItem
             // 
@@ -175,7 +175,6 @@ namespace HwndExplorer
             splitContainerMain.Size = new Size(1407, 675);
             splitContainerMain.SplitterDistance = 742;
             splitContainerMain.TabIndex = 1;
-            splitContainerMain.SplitterMoved += splitContainerMain_SplitterMoved;
             // 
             // propertyGridMain
             // 
