@@ -11,7 +11,7 @@ using System.Runtime.Versioning;
 #endif
 [assembly: AssemblyDescription("Hwnd Explorer")]
 [assembly: AssemblyCompany("Simon Mourier")]
-[assembly: AssemblyProduct("Hwnd Explore")]
+[assembly: AssemblyProduct("Hwnd Explorer")]
 [assembly: AssemblyCulture("")]
 
 [assembly: ComVisible(false)]
